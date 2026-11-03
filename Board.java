@@ -6,6 +6,9 @@
  * puzzle from a file, and print it. In Project 4 you will add the methods
  * that check whether values are valid and whether the board is solved.
  */
+import java.util.Random;
+import java.awt.Color;
+import java.awt.Graphics;
 import java.io.*;
 //import java.util.Arrays;
 
@@ -163,15 +166,140 @@ public class Board {
     
     return result;
 }
-  
 
-    // Your tests for the Board class. Run with:  java Board
+
+
+    // ===================== Project 4 =====================
+    private static Random gen = new Random();
+    private boolean finished;   // true once the solver has finished (Task 7)
+
+    /**
+     * Creates a board with numFixed randomly placed, locked, valid values.
+     */
+    public Board(int numFixed) {
+        // TODO (Task 3)
+        this();   // start from an empty board (DRY again!)
+        while(numLocked() < numFixed){
+            int randomR = gen.nextInt(9);
+            int randomC = gen.nextInt(9);
+            int randomV = gen.nextInt(9)+ 1;
+            if(validValue(randomR, randomC, randomV) == true){
+                set(randomR, randomC, randomV, true);
+            }
+        }
+    }
+
+    /** Returns the number of locked Cells on the board. */
+    public int numLocked() {
+        // TODO (Task 1)
+        int counter = 0;
+        for (int r = 0; r < 9; r++) {
+            for (int c = 0; c < 9; c++) {
+                if(field[r][c].isLocked()){
+                    counter++;
+                }
+            
+            }
+        }
+        return counter;
+
+    }
+
+    /**
+     * Returns true if value could go in the Cell at (row, col) without repeating
+     * a value in the same row, column, or 3x3 block. The Cell at (row, col)
+     * itself does not count.
+     */
+    public boolean validValue(int row, int col, int value) {
+        // TODO (Task 1)
+        // checking the row
+        // reject invalid numbers
+        if (value < 1 || value > 9) {
+            return false;
+        }
+        for(int i = 0; i < 9; i++){
+            //if the cell in the row has the same value its invalid
+            if( i != col && field[row][i].getValue() == value){
+                return false;
+            }
+        }
+        // the col
+            for(int i = 0; i < 9; i++){
+            // if the cell in this col has the same value, its also invalid 
+                if(i != row && field[i][col].getValue()== value){
+                    return false;
+            }
+        }
+
+        int startRow = row - (row % 3);
+        int startCol = col - (col % 3);
+        for (int r = startRow; r < startRow + 3; r++) {
+            for (int c = startCol; c < startCol + 3; c++) {
+                if((r != row || c != col) && field[r][c].getValue() == value){
+                    return false;
+                }
+            }
+        }
+            
+        return true;
+
+        }
+
+ 
+    /** Returns true if every Cell holds a value from 1 to 9 that is valid where it is. */
+    public boolean validSolution() {
+        // TODO (Task 2)
+        for (int r = 0; r < 9; r++) {
+            for (int c = 0; c < 9; c++) {
+                if( field[r][c].getValue() == 0){
+                    return false;
+                }
+                if(!validValue(r, c, field[r][c].getValue())){
+                    return false;
+                }
+            }
+                
+            }
+        return true;
+    }
+
+    /** Records whether the solver has finished. */
+    public void setFinished(boolean finished) {
+        this.finished = finished;
+    }
+
+    /** Draws the board. LandscapeDisplay calls this method. */
+    public void draw(Graphics g, int scale) {
+        // TODO (Task 7)
+            for (int r = 0; r < SIZE; r++) {
+        for (int c = 0; c < SIZE; c++) {
+            get(r, c).draw(g, c * scale + 5, r * scale + 20, scale);
+        }
+    }
+    g.setColor(Color.BLACK);
+    for (int i = 0; i <= SIZE; i += 3) {
+        g.drawLine(i * scale, 0, i * scale, SIZE * scale);
+        g.drawLine(0, i * scale, SIZE * scale, i * scale);
+    }
+    if (finished) {
+        if (validSolution()) {
+            g.setColor(new Color(0, 127, 0));
+            g.drawString("Hurray!", scale * 3 + 5, scale * 10 + 10);
+        } else {
+            g.setColor(new Color(127, 0, 0));
+            g.drawString("No solution!", scale * 3 + 5, scale * 10 + 10);
+        }
+    }
+}
+
+     
+   // Your tests for the Board class. Run with:  java Board
     // Each line prints the answer it should get ("expected") and what your code produced ("got").
     // Only call the test methods for tasks you have started.
     public static void main(String[] args) {
-        testTask3();
-        testTask4();   // remove the // when you start Task 4
-        testTask5();   // remove the // when you start Task 5
+        //testTask3();
+        //testTask4();   // remove the // when you start Task 4
+        //testTask5();   // remove the // when you start Task 5
     }
 
     private static void testTask3() {
@@ -213,7 +341,7 @@ public class Board {
         Board board1 = new Board("board1.txt");
         System.out.println(board1);
         System.out.println();
-
+    
 
     }
 }
